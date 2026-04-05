@@ -356,7 +356,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);over
 </div>
 
 <div id="toast"></div>
-<div id="vbadge">v1.4</div>
+<div id="vbadge">v1.5</div>
 
 <script>
 // -- CONFIG --------------------------------------------------------
@@ -723,7 +723,8 @@ function cargarLista(h){
     if(r[1]===turnoId){
       tieneRegistro = true;
       var v = r[5];
-      asistActual[r[3]] = (v===true||String(v).toLowerCase()==='true');
+      var vStr = String(v).toLowerCase().trim();
+      asistActual[r[3].toString()] = (v===true || vStr==='true' || vStr==='si');
     }
   });
   // Si no tiene registro previo, todos presentes por defecto
@@ -735,7 +736,7 @@ function cargarLista(h){
   var ff = new Date(fecha+'T12:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
   var infoEl = document.getElementById('turno-info');
   var avisoPrevia = tieneRegistro
-    ? '<div style="margin-top:8px;padding:7px 10px;background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.4);border-radius:7px;font-size:12px;color:var(--dorado);">&#x26A0; Este turno ya tiene asistencia cargada. Podas modificarla y guardar de nuevo.</div>'
+    ? '<div style="margin-top:8px;padding:7px 10px;background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.4);border-radius:7px;font-size:12px;color:var(--dorado);">&#x26A0; Este turno ya tiene asistencia cargada. Podras modificarla y guardar de nuevo.</div>'
     : '';
   infoEl.innerHTML = '<b>'+fmtHora(h.hora)+'hs - '+h.categoria+'</b> &bull; '+ff+(h.sede?' &bull; '+h.sede:'') + avisoPrevia;
   infoEl.classList.add('visible');
@@ -757,7 +758,7 @@ function renderLista(jug, turnoId){
   var html = '';
   jug.forEach(function(f){
     var dni = (f[COL.DNI]||'').toString();
-    var presente = asistActual[dni] !== false;
+    var presente = !(asistActual[dni] === false || asistActual[dni] === 'No' || asistActual[dni] === 'no');
     var anio = f[COL.FECHA_NAC] ? (''+f[COL.FECHA_NAC]).slice(-4)||'' : '';
     html += '<div class="alumno-row" data-nombre="'+(f[COL.APELLIDO]||'').toLowerCase()+' '+(f[COL.NOMBRE]||'').toLowerCase()+'">'
       + '<div><div class="alumno-nombre">'+(f[COL.APELLIDO]||'')+', '+(f[COL.NOMBRE]||'')+'</div>'
