@@ -12,7 +12,860 @@
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <style>
 :root {
+  --verde: #1a7a3c;<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Excursionistas - Profesores</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a7a3c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+:root {
   --verde: #1a7a3c;
+  --verde-dark: #0f5228;
+  --dorado: #c9a227;
+  --bg: #0d1117;
+  --surface: #161b22;
+  --surface2: #1c2230;
+  --border: #2a3444;
+  --text: #e6edf3;
+  --muted: #7d8590;
+  --red: #f85149;
+  --red-dim: rgba(248,81,73,.15);
+  --red-border: rgba(248,81,73,.4);
+  --verde-dim: rgba(26,122,60,.15);
+  --verde-border: rgba(26,122,60,.4);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;min-height:100vh;}
+
+/* -- LOADER -- */
+#loader{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;}
+#loader.hidden{display:none;}
+.spinner{width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--verde);border-radius:50%;animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+#loader p{margin-top:14px;color:var(--muted);font-size:13px;}
+
+/* -- LOGIN -- */
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px;z-index:100;}
+#login-screen.hidden{display:none;}
+.login-box{width:100%;max-width:380px;}
+.login-logo{text-align:center;margin-bottom:28px;}
+.login-logo img{width:72px;height:72px;border-radius:16px;margin-bottom:12px;}
+.login-logo h1{font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;}
+.login-logo p{color:var(--muted);font-size:13px;margin-top:4px;}
+.login-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;font-family:'Barlow Condensed',sans-serif;}
+.field-wrap{position:relative;}
+.field input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:12px 14px;border-radius:8px;font-size:15px;font-family:'Barlow',sans-serif;transition:border-color .2s;}
+.field input:focus{outline:none;border-color:var(--verde);}
+.eye-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:4px;}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:13px;border:none;border-radius:10px;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;letter-spacing:.05em;cursor:pointer;transition:all .2s;}
+.btn-verde{background:var(--verde);color:#fff;}
+.btn-verde:hover{background:#22a050;}
+.btn-bio{background:var(--surface2);border:1px solid var(--border);color:var(--text);margin-top:10px;}
+.btn-bio:hover{border-color:var(--verde);color:var(--verde);}
+.btn-link{background:none;border:none;color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer;width:100%;text-align:center;margin-top:12px;font-family:'Barlow',sans-serif;}
+.error-msg{background:var(--red-dim);border:1px solid var(--red-border);color:var(--red);padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;}
+
+/* -- APP -- */
+#app{display:none;}
+#app.visible{display:flex;flex-direction:column;min-height:100vh;}
+
+/* Header */
+.app-header{background:var(--surface);border-bottom:2px solid var(--verde);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+.app-header-left{display:flex;align-items:center;gap:10px;}
+.app-header-left img{width:36px;height:36px;border-radius:8px;}
+.prof-name{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;}
+.prof-role{font-size:11px;color:var(--muted);}
+.header-btns{display:flex;gap:8px;}
+.icon-btn{background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:8px;cursor:pointer;font-size:14px;}
+.icon-btn:hover{border-color:var(--verde);color:var(--verde);}
+
+/* Tabs */
+.app-tabs{display:flex;background:var(--surface);border-bottom:1px solid var(--border);}
+.app-tab{flex:1;padding:11px 8px;text-align:center;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;letter-spacing:.05em;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;}
+.app-tab.active{color:var(--dorado);border-bottom-color:var(--dorado);}
+
+/* Secciones */
+.app-section{display:none;flex:1;padding:16px;}
+.app-section.active{display:block;}
+
+/* Asistencia */
+.asist-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px;}
+.asist-card-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-family:'Barlow Condensed',sans-serif;margin-bottom:6px;}
+.select-input,.date-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:8px;font-size:14px;font-family:'Barlow',sans-serif;-webkit-appearance:none;}
+.select-input:focus,.date-input:focus{outline:none;border-color:var(--verde);}
+.turno-info{background:var(--verde-dim);border:1px solid var(--verde-border);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:13px;display:none;}
+.turno-info.visible{display:block;}
+.stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+.stat-item{background:var(--surface2);border-radius:10px;padding:12px;text-align:center;}
+.stat-n{font-family:'Barlow Condensed',sans-serif;font-size:26px;font-weight:800;}
+.stat-l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px;}
+
+/* Lista alumnos */
+.search-bar{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:10px 14px;border-radius:8px;width:100%;font-size:14px;margin-bottom:12px;}
+.search-bar:focus{outline:none;border-color:var(--verde);}
+.alumno-row{display:flex;align-items:center;justify-content:space-between;padding:13px 14px;border-bottom:1px solid var(--border);gap:10px;}
+.alumno-row:last-child{border-bottom:none;}
+.alumno-nombre{font-weight:600;font-size:14px;}
+.alumno-info{font-size:11px;color:var(--muted);margin-top:2px;}
+.toggle-btn{width:48px;height:28px;border-radius:14px;border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0;}
+.toggle-btn.presente{background:var(--verde);}
+.toggle-btn.ausente{background:var(--border);}
+.toggle-btn::after{content:'';position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;top:3px;transition:left .2s;}
+.toggle-btn.presente::after{left:23px;}
+.toggle-btn.ausente::after{left:3px;}
+.btn-guardar{background:var(--verde);color:#fff;border:none;border-radius:10px;padding:13px;width:100%;font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:700;cursor:pointer;margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-guardar:disabled{background:var(--muted);cursor:not-allowed;}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted);font-size:14px;}
+
+/* Perfil */
+.perfil-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px;}
+.perfil-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:16px;color:var(--dorado);}
+.perfil-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.perfil-row:last-child{border-bottom:none;}
+.perfil-row-label{color:var(--muted);}
+.perfil-row-val{font-weight:600;}
+.campo-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:8px;font-size:14px;margin-bottom:10px;}
+.campo-input:focus{outline:none;border-color:var(--verde);}
+.btn-perfil{background:var(--verde);color:#fff;border:none;border-radius:8px;padding:11px 16px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;cursor:pointer;width:100%;}
+.btn-logout{background:var(--red-dim);border:1px solid var(--red-border);color:var(--red);border-radius:8px;padding:11px 16px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-top:10px;}
+.btn-bio-perfil{background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:11px 16px;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-top:10px;}
+.success-msg{background:var(--verde-dim);border:1px solid var(--verde-border);color:#6de097;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:10px;display:none;}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:20px;z-index:200;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:380px;padding:24px;}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;margin-bottom:6px;}
+.modal-sub{font-size:13px;color:var(--muted);margin-bottom:20px;}
+.modal-btns{display:flex;gap:10px;margin-top:16px;}
+
+/* Cambio de pass obligatorio */
+#cambio-pass-screen{position:fixed;inset:0;background:var(--bg);display:none;align-items:center;justify-content:center;padding:20px;z-index:150;}
+#cambio-pass-screen.visible{display:flex;}
+.cambio-box{width:100%;max-width:380px;}
+
+/* Badge version */
+#vbadge{position:fixed;bottom:10px;right:10px;background:rgba(0,0,0,.7);border:1px solid var(--dorado);color:var(--dorado);font-family:'Barlow Condensed',sans-serif;font-size:11px;padding:3px 8px;border-radius:6px;z-index:9999;}
+
+/* Toast */
+#toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;display:none;z-index:9999;white-space:nowrap;}
+#toast.ok{background:var(--verde);}
+#toast.err{background:var(--red);}
+</style>
+</head>
+<body>
+
+<!-- Loader -->
+<div id="loader"><div class="spinner"></div><p id="loader-msg">Cargando...</p></div>
+
+<!-- Login -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <img src="icons/icon-192.png" alt="CAE" onerror="this.style.display='none'">
+      <h1>Club Atletico<br>Excursionistas</h1>
+      <p>Portal de Profesores</p>
+    </div>
+    <div class="login-card">
+      <div class="error-msg" id="login-error"></div>
+      <div class="field">
+        <label>DNI</label>
+        <input type="number" id="login-dni" placeholder="Tu numero de DNI" inputmode="numeric">
+      </div>
+      <div class="field">
+        <label>Contrasena</label>
+        <div class="field-wrap">
+          <input type="password" id="login-pass" placeholder="Tu contrasena">
+          <button class="eye-btn" onclick="toggleEye('login-pass',this)">&#x1F441;</button>
+        </div>
+      </div>
+      <button class="btn btn-verde" onclick="doLogin()">&#x2192; ENTRAR</button>
+      <button class="btn btn-bio" id="btnBioLogin" onclick="loginConHuella()" style="display:none;">&#x1F4F1; Entrar con huella / Face ID</button>
+      <button class="btn-link" onclick="abrirResetPass()">Olvide mi contrasena</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cambio de contrase&ntilde;a obligatorio -->
+<div id="cambio-pass-screen">
+  <div class="cambio-box">
+    <div class="login-logo">
+      <img src="icons/icon-192.png" alt="CAE" onerror="this.style.display='none'">
+      <h1>Cambiar contrasena</h1>
+      <p>Es tu primer ingreso. Eleg&iacute; una nueva contrase&ntilde;a.</p>
+    </div>
+    <div class="login-card">
+      <div class="error-msg" id="cambio-error"></div>
+      <div class="field">
+        <label>Nueva contrasena</label>
+        <div class="field-wrap">
+          <input type="password" id="cambio-nueva" placeholder="Minimo 6 caracteres">
+          <button class="eye-btn" onclick="toggleEye('cambio-nueva',this)">&#x1F441;</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Confirmar contrasena</label>
+        <input type="password" id="cambio-confirmar" placeholder="Repetir contrasena">
+      </div>
+      <button class="btn btn-verde" onclick="doForzarCambioPass()">GUARDAR Y ENTRAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- App principal -->
+<div id="app">
+  <div class="app-header">
+    <div class="app-header-left">
+      <img src="icons/icon-192.png" alt="CAE" onerror="this.style.display='none'">
+      <div>
+        <div class="prof-name" id="header-nombre">Profesor</div>
+        <div class="prof-role">Asistencias</div>
+      </div>
+    </div>
+    <div class="header-btns">
+      <button class="icon-btn" onclick="irTab('perfil')" title="Mi perfil">&#x1F464;</button>
+      <button class="icon-btn" onclick="doLogout()" title="Salir">&#x2192;</button>
+    </div>
+  </div>
+
+  <div class="app-tabs">
+    <div class="app-tab active" id="tab-asist" onclick="irTab('asist')">&#x2713; Asistencia</div>
+    <div class="app-tab" id="tab-perfil" onclick="irTab('perfil')">&#x1F464; Mi perfil</div>
+  </div>
+
+  <!-- Secci&oacute;n asistencia -->
+  <div class="app-section active" id="sec-asist">
+    <div class="asist-card">
+      <div style="display:flex;gap:12px;margin-bottom:12px;">
+        <div style="flex:1;">
+          <div class="asist-card-label">Fecha</div>
+          <input type="date" id="asist-fecha" class="date-input" onchange="onCambioFecha()">
+        </div>
+      </div>
+      <div>
+        <div class="asist-card-label">Turno</div>
+        <select id="asist-turno" class="select-input" onchange="onCambioTurno()">
+          <option value="">-- Elegir turno --</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="turno-info" id="turno-info"></div>
+
+    <div class="stats-bar" id="stats-bar" style="display:none;">
+      <div class="stat-item"><div class="stat-n" id="cnt-p" style="color:#6de097">0</div><div class="stat-l">Presentes</div></div>
+      <div class="stat-item"><div class="stat-n" id="cnt-a" style="color:var(--red)">0</div><div class="stat-l">Ausentes</div></div>
+      <div class="stat-item"><div class="stat-n" id="cnt-pct" style="color:var(--dorado)">0%</div><div class="stat-l">Asistencia</div></div>
+    </div>
+
+    <div id="lista-container" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;display:none;">
+      <div style="padding:12px;">
+        <input type="text" class="search-bar" id="asist-busq" placeholder="Buscar alumno..." oninput="filtrarAlumnos()">
+      </div>
+      <div id="lista-alumnos"></div>
+      <div style="padding:12px;">
+        <button class="btn-guardar" id="btn-guardar" onclick="guardarAsistencia()">&#x1F4BE; GUARDAR ASISTENCIA</button>
+      </div>
+    </div>
+
+    <div class="empty-state" id="asist-empty">Eleg&iacute; una fecha y un turno para tomar asistencia</div>
+  </div>
+
+  <!-- Secci&oacute;n perfil -->
+  <div class="app-section" id="sec-perfil">
+    <div class="perfil-card">
+      <div class="perfil-title">Mis datos</div>
+      <div class="perfil-row"><span class="perfil-row-label">Nombre</span><span class="perfil-row-val" id="perfil-nombre">-</span></div>
+      <div class="perfil-row"><span class="perfil-row-label">DNI</span><span class="perfil-row-val" id="perfil-dni">-</span></div>
+      <div class="perfil-row"><span class="perfil-row-label">Email</span><span class="perfil-row-val" id="perfil-email">-</span></div>
+    </div>
+
+    <div class="perfil-card">
+      <div class="perfil-title">Mis turnos</div>
+      <div id="perfil-turnos"><span style="color:var(--muted);font-size:13px;">Sin turnos asignados</span></div>
+    </div>
+
+    <div class="perfil-card">
+      <div class="perfil-title">Cambiar contrasena</div>
+      <div class="success-msg" id="pass-success">Contrasena actualizada correctamente</div>
+      <div class="error-msg" id="pass-error"></div>
+      <input type="password" class="campo-input" id="pass-actual" placeholder="Contrasena actual">
+      <input type="password" class="campo-input" id="pass-nueva" placeholder="Nueva contrasena (min. 6 caracteres)">
+      <input type="password" class="campo-input" id="pass-confirmar" placeholder="Confirmar nueva contrasena">
+      <button class="btn-perfil" onclick="doCambiarPass()">CAMBIAR CONTRASENA</button>
+    </div>
+
+    <div class="perfil-card">
+      <div class="perfil-title">Acceso biometrico</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Usa tu huella dactilar o Face ID para entrar sin escribir la contrasena.</p>
+      <button class="btn-bio-perfil" id="btn-bio-perfil" onclick="toggleBiometrico()">Activar huella / Face ID</button>
+    </div>
+
+    <button class="btn-logout" onclick="doLogout()">&#x2192; Cerrar sesion</button>
+  </div>
+</div>
+
+<!-- Modal reset password -->
+<div class="modal-overlay" id="modal-reset">
+  <div class="modal">
+    <div class="modal-title">Recuperar contrasena</div>
+    <div class="modal-sub">Ingresa tu DNI y te enviamos una contrasena temporal a tu email registrado.</div>
+    <div class="error-msg" id="reset-error"></div>
+    <div class="field">
+      <label>DNI</label>
+      <input type="number" id="reset-dni" class="campo-input" placeholder="Tu DNI">
+    </div>
+    <div class="modal-btns">
+      <button class="btn btn-verde" style="flex:1;" onclick="doResetPass()">ENVIAR</button>
+      <button class="btn" style="flex:1;background:var(--surface2);border:1px solid var(--border);" onclick="cerrarReset()">CANCELAR</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="vbadge">v1.2</div>
+
+<script>
+// -- CONFIG --------------------------------------------------------
+var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxzpCTy6nKk2pNrv-hBLLe5hp1xTOns3YVKwYh7wJhDmCr5JcVObT62UEI7pIYCWS2Qbw/exec';
+var WA_KEY = 'excursio_prof_cred';
+var SESS_KEY = 'excursio_prof_sess';
+
+// -- ESTADO -------------------------------------------------------
+var PROF = null; // {dni, nombre, email, token}
+var DB = {horarios:[], jugadores:[]};
+var asistencias = [];
+var asistActual = {}; // dni -> bool
+var turnoActual = null;
+
+// -- UTILS --------------------------------------------------------
+function fmtHora(h) {
+  if (!h) return '';
+  var s = h.toString();
+  // Si es una fecha ISO (viene de GAS cuando la celda tiene formato hora)
+  if (s.includes('T') || s.includes('1899')) {
+    try {
+      var d = new Date(s);
+      if (!isNaN(d.getTime())) {
+        var hh = d.getUTCHours();
+        var mm = d.getUTCMinutes();
+        return hh + (mm > 0 ? ':' + String(mm).padStart(2,'0') : '');
+      }
+    } catch(e) {}
+  }
+  // Si ya es un numero o string simple
+  return s.replace('hs','').trim();
+}
+
+function mostrarLoader(msg){
+  document.getElementById('loader').classList.remove('hidden');
+  document.getElementById('loader-msg').innerText = msg||'Cargando...';
+}
+function ocultarLoader(){ document.getElementById('loader').classList.add('hidden'); }
+
+function toast(msg, tipo){
+  var el = document.getElementById('toast');
+  el.innerText = msg;
+  el.className = tipo||'';
+  el.style.display = 'block';
+  setTimeout(function(){ el.style.display='none'; }, 2800);
+}
+
+function toggleEye(inputId, btn){
+  var inp = document.getElementById(inputId);
+  if(inp.type==='password'){ inp.type='text'; btn.innerHTML='&#x1F648;'; }
+  else { inp.type='password'; btn.innerHTML='&#x1F441;'; }
+}
+
+function callAPI(action, data, cb, cbErr){
+  var url = SCRIPT_URL + '?action=' + action + '&data=' + encodeURIComponent(JSON.stringify(data));
+  fetch(url, {method:'GET', redirect:'follow'})
+    .then(function(r){ return r.text(); })
+    .then(function(t){
+      var d; try{ d=JSON.parse(t); }catch(e){ d={raw:t}; }
+      if(d && d.error){ if(cbErr) cbErr(d.error); else toast(d.error,'err'); }
+      else { if(cb) cb(d); }
+    })
+    .catch(function(e){ if(cbErr) cbErr('Sin conexion'); else toast('Sin conexion','err'); });
+}
+
+// -- SESION -------------------------------------------------------
+function guardarSesion(prof){
+  PROF = prof;
+  localStorage.setItem(SESS_KEY, JSON.stringify(prof));
+}
+function cargarSesion(){
+  try{
+    var s = localStorage.getItem(SESS_KEY);
+    if(!s) return null;
+    var p = JSON.parse(s);
+    // Verificar que el token no expiro (8h)
+    var parts = (p.token||'').split('_');
+    var ts = parseInt(parts[1]);
+    if(isNaN(ts) || (Date.now()-ts) > 8*60*60*1000) return null;
+    return p;
+  }catch(e){ return null; }
+}
+function limpiarSesion(){
+  PROF = null;
+  localStorage.removeItem(SESS_KEY);
+}
+
+// -- BIOMETRICO (WebAuthn) ----------------------------------------
+function hayHuella(){ return !!localStorage.getItem(WA_KEY); }
+
+async function registrarHuella(pass){
+  if(!window.PublicKeyCredential){ toast('Tu dispositivo no soporta biometria','err'); return; }
+  try {
+    var chall = new Uint8Array(32);
+    crypto.getRandomValues(chall);
+    var uid = new TextEncoder().encode(PROF.dni);
+    var cred = await navigator.credentials.create({publicKey:{
+      challenge: chall,
+      rp: {name:'Excursionistas Prof'},
+      user: {id:uid, name:PROF.dni, displayName:PROF.nombre},
+      pubKeyCredParams: [{alg:-7,type:'public-key'}],
+      authenticatorSelection: {authenticatorAttachment:'platform', userVerification:'required'},
+      timeout: 60000
+    }});
+    localStorage.setItem(WA_KEY, JSON.stringify({
+      credId: btoa(String.fromCharCode(...new Uint8Array(cred.rawId))),
+      dni: PROF.dni,
+      pass: pass
+    }));
+    toast('Huella registrada correctamente','ok');
+    actualizarBtnBio();
+  }catch(e){ toast('No se pudo registrar la huella','err'); }
+}
+
+async function loginConHuella(){
+  var data = null;
+  try{ data = JSON.parse(localStorage.getItem(WA_KEY)); }catch(e){}
+  if(!data){ toast('No hay huella registrada','err'); return; }
+  try{
+    var chall = new Uint8Array(32);
+    crypto.getRandomValues(chall);
+    var credId = Uint8Array.from(atob(data.credId), function(c){ return c.charCodeAt(0); });
+    await navigator.credentials.get({publicKey:{
+      challenge: chall,
+      allowCredentials: [{type:'public-key', id:credId, transports:['internal']}],
+      userVerification: 'required',
+      timeout: 60000
+    }});
+    // Autenticado - hacer login con las credenciales guardadas
+    document.getElementById('login-dni').value = data.dni;
+    document.getElementById('login-pass').value = data.pass;
+    doLogin();
+  }catch(e){ toast('No se pudo verificar la huella','err'); }
+}
+
+function olvidarHuella(){
+  localStorage.removeItem(WA_KEY);
+  toast('Huella eliminada','ok');
+  actualizarBtnBio();
+}
+
+function actualizarBtnBio(){
+  var btnLogin = document.getElementById('btnBioLogin');
+  var btnPerfil = document.getElementById('btn-bio-perfil');
+  if(hayHuella()){
+    if(btnLogin) btnLogin.style.display='flex';
+    if(btnPerfil) btnPerfil.innerText='Desactivar huella / Face ID';
+  } else {
+    if(btnLogin) btnLogin.style.display='none';
+    if(btnPerfil) btnPerfil.innerText='Activar huella / Face ID';
+  }
+}
+
+function toggleBiometrico(){
+  if(hayHuella()){ olvidarHuella(); }
+  else {
+    var pass = document.getElementById('pass-actual').value || prompt('Ingresa tu contrasena para activar la huella:');
+    if(pass) registrarHuella(pass);
+  }
+}
+
+// -- LOGIN --------------------------------------------------------
+function doLogin(){
+  var dni = document.getElementById('login-dni').value.trim();
+  var pass = document.getElementById('login-pass').value.trim();
+  var errEl = document.getElementById('login-error');
+  errEl.style.display='none';
+  if(!dni||!pass){ errEl.innerText='Completa todos los campos'; errEl.style.display='block'; return; }
+
+  mostrarLoader('Verificando...');
+  callAPI('loginProfesor', {dni:dni, pass:pass}, function(r){
+    ocultarLoader();
+    if(!r.ok){ errEl.innerText=r.error||'Error al ingresar'; errEl.style.display='block'; return; }
+    guardarSesion({dni:dni, nombre:r.nombre, email:r.email, token:r.token});
+
+    if(r.esPrimerLogin){
+      // Forzar cambio de contrasena
+      document.getElementById('login-screen').classList.add('hidden');
+      document.getElementById('cambio-pass-screen').classList.add('visible');
+    } else {
+      entrarApp(pass);
+    }
+  }, function(e){
+    ocultarLoader();
+    errEl.innerText = e||'Error de conexion';
+    errEl.style.display='block';
+  });
+}
+
+function doForzarCambioPass(){
+  var nueva = document.getElementById('cambio-nueva').value.trim();
+  var conf  = document.getElementById('cambio-confirmar').value.trim();
+  var errEl = document.getElementById('cambio-error');
+  errEl.style.display='none';
+  if(nueva.length < 6){ errEl.innerText='Minimo 6 caracteres'; errEl.style.display='block'; return; }
+  if(nueva !== conf){ errEl.innerText='Las contrasenas no coinciden'; errEl.style.display='block'; return; }
+
+  mostrarLoader('Guardando...');
+  callAPI('cambiarPassProfesor', {dni:PROF.dni, token:PROF.token, passActual:PROF.dni, passNueva:nueva}, function(r){
+    ocultarLoader();
+    if(!r.ok){ errEl.innerText=r.error||'Error'; errEl.style.display='block'; return; }
+    document.getElementById('cambio-pass-screen').classList.remove('visible');
+    entrarApp(nueva);
+  }, function(e){
+    ocultarLoader();
+    errEl.innerText = e;
+    errEl.style.display='block';
+  });
+}
+
+function entrarApp(pass){
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app').classList.add('visible');
+
+  // Ofrecer huella si no tiene
+  if(!hayHuella() && window.PublicKeyCredential && pass){
+    setTimeout(function(){
+      if(confirm('Queres activar el acceso con huella o Face ID?')){
+        registrarHuella(pass);
+      }
+    }, 800);
+  }
+
+  cargarDatos();
+  actualizarBtnBio();
+  iniciarFecha();
+}
+
+function doLogout(){
+  if(!confirm('Cerrar sesion?')) return;
+  limpiarSesion();
+  DB = {horarios:[], jugadores:[]};
+  asistencias = [];
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-pass').value='';
+  document.getElementById('login-error').style.display='none';
+}
+
+// -- RESET PASS ---------------------------------------------------
+function abrirResetPass(){ document.getElementById('modal-reset').classList.add('open'); }
+function cerrarReset(){ document.getElementById('modal-reset').classList.remove('open'); }
+function doResetPass(){
+  var dni = document.getElementById('reset-dni').value.trim();
+  var errEl = document.getElementById('reset-error');
+  errEl.style.display='none';
+  if(!dni){ errEl.innerText='Ingresa tu DNI'; errEl.style.display='block'; return; }
+  mostrarLoader('Enviando...');
+  callAPI('resetPassProfesor', {dni:dni}, function(r){
+    ocultarLoader();
+    cerrarReset();
+    toast('Contrasena temporal enviada a tu email','ok');
+  }, function(e){
+    ocultarLoader();
+    errEl.innerText = e;
+    errEl.style.display='block';
+  });
+}
+
+// -- CARGAR DATOS -------------------------------------------------
+function cargarDatos(){
+  mostrarLoader('Cargando datos...');
+  callAPI('getDataProfesor', {dni:PROF.dni, token:PROF.token}, function(r){
+    ocultarLoader();
+    if(r.error){ toast(r.error,'err'); return; }
+    DB.horarios = r.horarios || [];
+    DB.jugadores = r.jugadores || [[]];
+    asistencias = r.asistencias || [];
+    // Actualizar header y perfil
+    document.getElementById('header-nombre').innerText = r.nombre||PROF.nombre;
+    document.getElementById('perfil-nombre').innerText = r.nombre||PROF.nombre;
+    document.getElementById('perfil-dni').innerText = PROF.dni;
+    document.getElementById('perfil-email').innerText = r.email||PROF.email||'-';
+    renderTurnosPerfil();
+  }, function(e){
+    ocultarLoader();
+    toast(e,'err');
+  });
+}
+
+// -- TABS ---------------------------------------------------------
+function irTab(tab){
+  document.querySelectorAll('.app-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.app-section').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('sec-'+tab).classList.add('active');
+}
+
+// -- ASISTENCIAS --------------------------------------------------
+var COL = {APELLIDO:0,NOMBRE:1,EMAIL:2,DNI:8,FECHA_NAC:9,SEXO:10,ACTIVO:6,CATEGORIA_APP:17,PLAN:18,LIGA:22};
+
+function iniciarFecha(){
+  var hoy = new Date();
+  var val = hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-'+String(hoy.getDate()).padStart(2,'0');
+  document.getElementById('asist-fecha').value = val;
+  poblarTurnos();
+}
+
+function poblarTurnos(){
+  var fecha = document.getElementById('asist-fecha').value;
+  var sel = document.getElementById('asist-turno');
+  var diasSemana = ['Domingo','Lunes','Martes','Miercoles','Jueves','Viernes','Sabado'];
+  var diaFecha = fecha ? diasSemana[new Date(fecha+'T12:00:00').getDay()] : '';
+
+  sel.innerHTML = '<option value="">-- Elegir turno --</option>';
+  var count = 0;
+  DB.horarios.forEach(function(h, i){
+    var diaTurno = (h.dia||'').trim();
+    if(diaFecha && diaTurno.toLowerCase() !== diaFecha.toLowerCase()) return;
+    sel.innerHTML += '<option value="'+i+'">'+fmtHora(h.hora)+'hs - '+h.categoria+(h.liga&&h.liga!=='Ambas'?' ['+h.liga+']':'')+'</option>';
+    count++;
+  });
+  if(diaFecha && count===0){
+    sel.innerHTML = '<option value="">Sin turnos para este dia</option>';
+  }
+  ocultarLista();
+}
+
+function onCambioFecha(){
+  poblarTurnos();
+  document.getElementById('asist-turno').value = '';
+  ocultarLista();
+}
+
+function onCambioTurno(){
+  var idx = document.getElementById('asist-turno').value;
+  if(idx==='') { ocultarLista(); return; }
+  var h = DB.horarios[parseInt(idx)];
+  turnoActual = h;
+  cargarLista(h);
+}
+
+function ocultarLista(){
+  document.getElementById('lista-container').style.display='none';
+  document.getElementById('stats-bar').style.display='none';
+  document.getElementById('turno-info').classList.remove('visible');
+  document.getElementById('asist-empty').style.display='block';
+  turnoActual = null;
+  asistActual = {};
+}
+
+function cargarLista(h){
+  var fecha = document.getElementById('asist-fecha').value;
+  var turnoId = fecha+'_T'+DB.horarios.indexOf(h)+'_'+h.categoria;
+
+  // Filtrar jugadores de esta categoria y liga
+  var jug = DB.jugadores.slice(1).filter(function(f){
+    if(!f||!f.length) return false;
+    var activo = f[COL.ACTIVO];
+    if(!(activo===true||String(activo).toLowerCase()==='si')) return false;
+    if(f[COL.CATEGORIA_APP] !== h.categoria) return false;
+    var ligaH = (h.liga||'Ambas').trim();
+    var ligaJ = String(f[COL.LIGA]||'Ambas').trim();
+    if(ligaH==='AFA' && ligaJ==='Futsala') return false;
+    if(ligaH==='Futsala' && ligaJ==='AFA') return false;
+    return true;
+  });
+
+  // Cargar asistencias previas
+  asistActual = {};
+  var tieneRegistro = false;
+  asistencias.forEach(function(r){
+    if(r[1]===turnoId){
+      tieneRegistro = true;
+      var v = r[5];
+      asistActual[r[3]] = (v===true||String(v).toLowerCase()==='true');
+    }
+  });
+  // Si no tiene registro previo, todos presentes por defecto
+  if(!tieneRegistro){
+    jug.forEach(function(f){ asistActual[(f[COL.DNI]||'').toString()] = true; });
+  }
+
+  // Info del turno
+  var ff = new Date(fecha+'T12:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
+  var infoEl = document.getElementById('turno-info');
+  infoEl.innerHTML = '<b>'+fmtHora(h.hora)+'hs - '+h.categoria+'</b> &bull; '+ff+(h.sede?' &bull; '+h.sede:'');
+  infoEl.classList.add('visible');
+
+  // Renderizar
+  renderLista(jug, turnoId);
+  document.getElementById('asist-empty').style.display='none';
+  document.getElementById('lista-container').style.display='block';
+  document.getElementById('stats-bar').style.display='grid';
+  actualizarStats(jug.length);
+
+  // Guardar turnoId para el save
+  window._turnoId = turnoId;
+  window._turnoLabel = fmtHora(h.hora)+'hs - '+h.categoria;
+  window._jugActual = jug;
+}
+
+function renderLista(jug, turnoId){
+  var html = '';
+  jug.forEach(function(f){
+    var dni = (f[COL.DNI]||'').toString();
+    var presente = asistActual[dni] !== false;
+    var anio = f[COL.FECHA_NAC] ? (''+f[COL.FECHA_NAC]).slice(-4)||'' : '';
+    html += '<div class="alumno-row" data-nombre="'+(f[COL.APELLIDO]||'').toLowerCase()+' '+(f[COL.NOMBRE]||'').toLowerCase()+'">'
+      + '<div><div class="alumno-nombre">'+(f[COL.APELLIDO]||'')+', '+(f[COL.NOMBRE]||'')+'</div>'
+      + '<div class="alumno-info">DNI: '+dni+(anio?' | Nac. '+anio:'')+'</div></div>'
+      + '<button class="toggle-btn '+(presente?'presente':'ausente')+'" data-dni="'+dni+'" onclick="toggleAlumno(this)"></button>'
+      + '</div>';
+  });
+  document.getElementById('lista-alumnos').innerHTML = html || '<div class="empty-state">Sin alumnos en esta categoria</div>';
+  actualizarStats(jug.length);
+}
+
+function toggleAlumno(btn){
+  var dni = btn.dataset.dni;
+  var ahora = btn.classList.contains('presente');
+  if(ahora){ btn.classList.remove('presente'); btn.classList.add('ausente'); asistActual[dni]=false; }
+  else { btn.classList.remove('ausente'); btn.classList.add('presente'); asistActual[dni]=true; }
+  actualizarStats(window._jugActual ? window._jugActual.length : 0);
+}
+
+function actualizarStats(total){
+  var pres = Object.values(asistActual).filter(function(v){ return v; }).length;
+  var aus = total - pres;
+  var pct = total>0 ? Math.round(pres/total*100) : 0;
+  document.getElementById('cnt-p').innerText = pres;
+  document.getElementById('cnt-a').innerText = aus;
+  document.getElementById('cnt-pct').innerText = pct+'%';
+}
+
+function filtrarAlumnos(){
+  var q = document.getElementById('asist-busq').value.toLowerCase();
+  document.querySelectorAll('.alumno-row').forEach(function(row){
+    row.style.display = row.dataset.nombre.includes(q) ? '' : 'none';
+  });
+}
+
+function guardarAsistencia(){
+  if(!window._turnoId || !window._jugActual) return;
+  var fecha = document.getElementById('asist-fecha').value;
+  var registros = window._jugActual.map(function(f){
+    var dni = (f[COL.DNI]||'').toString();
+    var presente = asistActual[dni] !== false;
+    return [fecha, window._turnoId, window._turnoLabel, dni,
+            (f[COL.APELLIDO]||'')+' '+(f[COL.NOMBRE]||''),
+            presente?'Si':'No', 'Hoja 1'];
+  });
+
+  var btn = document.getElementById('btn-guardar');
+  btn.disabled = true;
+  btn.innerText = 'Guardando...';
+  mostrarLoader('Guardando asistencia...');
+
+  callAPI('guardarAsistenciaProfesor', {dni:PROF.dni, token:PROF.token, registros:registros}, function(r){
+    ocultarLoader();
+    btn.disabled = false;
+    btn.innerHTML = '&#x1F4BE; GUARDAR ASISTENCIA';
+    if(!r.ok){ toast(r.error||'Error al guardar','err'); return; }
+    // Actualizar asistencias locales
+    asistencias = asistencias.filter(function(r){ return r[1]!==window._turnoId; });
+    asistencias = asistencias.concat(registros);
+    toast('Asistencia guardada correctamente','ok');
+  }, function(e){
+    ocultarLoader();
+    btn.disabled = false;
+    btn.innerHTML = '&#x1F4BE; GUARDAR ASISTENCIA';
+    toast(e,'err');
+  });
+}
+
+// -- PERFIL --------------------------------------------------------
+function renderTurnosPerfil(){
+  var el = document.getElementById('perfil-turnos');
+  if(!DB.horarios.length){ el.innerHTML='<span style="color:var(--muted);font-size:13px;">Sin turnos asignados</span>'; return; }
+  el.innerHTML = DB.horarios.map(function(h){
+    return '<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">'
+      + '<b>'+h.dia+'</b> '+fmtHora(h.hora)+'hs &mdash; '+h.categoria
+      + (h.liga&&h.liga!=='Ambas'?' <span style="color:var(--dorado);font-size:11px;">['+h.liga+']</span>':'')
+      + (h.sede?' <span style="color:var(--muted);">('+h.sede+')</span>':'')
+      + '</div>';
+  }).join('');
+}
+
+function doCambiarPass(){
+  var actual    = document.getElementById('pass-actual').value.trim();
+  var nueva     = document.getElementById('pass-nueva').value.trim();
+  var confirmar = document.getElementById('pass-confirmar').value.trim();
+  var errEl  = document.getElementById('pass-error');
+  var succEl = document.getElementById('pass-success');
+  errEl.style.display='none'; succEl.style.display='none';
+
+  if(!actual||!nueva||!confirmar){ errEl.innerText='Completa todos los campos'; errEl.style.display='block'; return; }
+  if(nueva.length<6){ errEl.innerText='Minimo 6 caracteres'; errEl.style.display='block'; return; }
+  if(nueva!==confirmar){ errEl.innerText='Las contrasenas no coinciden'; errEl.style.display='block'; return; }
+
+  mostrarLoader('Actualizando...');
+  callAPI('cambiarPassProfesor', {dni:PROF.dni, token:PROF.token, passActual:actual, passNueva:nueva}, function(r){
+    ocultarLoader();
+    if(!r.ok){ errEl.innerText=r.error||'Error'; errEl.style.display='block'; return; }
+    document.getElementById('pass-actual').value='';
+    document.getElementById('pass-nueva').value='';
+    document.getElementById('pass-confirmar').value='';
+    succEl.style.display='block';
+    setTimeout(function(){ succEl.style.display='none'; }, 3000);
+  }, function(e){
+    ocultarLoader();
+    errEl.innerText = e;
+    errEl.style.display='block';
+  });
+}
+
+// -- INIT ---------------------------------------------------------
+// -- SERVICE WORKER -----------------------------------------------
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/excursio-prof/sw.js')
+    .then(function(reg){ console.log('SW registrado'); })
+    .catch(function(e){ console.log('SW error:', e); });
+}
+
+window.onload = function(){
+  actualizarBtnBio();
+  // Intentar recuperar sesion guardada
+  var sess = cargarSesion();
+  if(sess){
+    PROF = sess;
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app').classList.add('visible');
+    cargarDatos();
+    actualizarBtnBio();
+    iniciarFecha();
+  } else {
+    ocultarLoader();
+  }
+};
+</script>
+</body>
+</html>
+
   --verde-dark: #0f5228;
   --dorado: #c9a227;
   --bg: #0d1117;
