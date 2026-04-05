@@ -826,6 +826,13 @@ function doCambiarPass(){
 }
 
 // â”€â”€ INIT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â”€â”€ SERVICE WORKER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/excursio-prof/sw.js')
+    .then(function(reg){ console.log('SW registrado'); })
+    .catch(function(e){ console.log('SW error:', e); });
+}
+
 window.onload = function(){
   actualizarBtnBio();
   // Intentar recuperar sesion guardada
