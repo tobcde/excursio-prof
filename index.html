@@ -140,6 +140,20 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);over
 .cambio-box{width:100%;max-width:380px;}
 
 /* Badge version */
+.hist-table{border-collapse:collapse;width:100%;min-width:400px;font-size:12px;}
+.hist-table th{background:var(--surface2);padding:8px 10px;text-align:center;border:1px solid var(--border);
+  font-family:'Barlow Condensed',sans-serif;font-size:11px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.04em;white-space:nowrap;position:sticky;top:0;z-index:2;}
+.hist-table th:first-child{text-align:left;position:sticky;left:0;z-index:3;background:var(--surface2);min-width:130px;}
+.hist-table td{padding:7px 10px;border:1px solid var(--border);text-align:center;background:var(--bg);}
+.hist-table td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);
+  font-weight:600;font-size:12px;z-index:1;white-space:nowrap;}
+.hist-table tr:hover td{filter:brightness(1.1);}
+.pres-cell{color:#6de097;font-size:15px;}
+.ause-cell{color:var(--red);font-size:13px;opacity:.7;}
+.no-cell{color:var(--border);font-size:12px;}
+.hist-resumen{display:flex;gap:8px;padding:10px;background:var(--surface2);border-top:1px solid var(--border);
+  font-size:11px;color:var(--muted);flex-wrap:wrap;}
 #vbadge{position:fixed;bottom:10px;right:10px;background:rgba(0,0,0,.7);border:1px solid var(--dorado);color:var(--dorado);font-family:'Barlow Condensed',sans-serif;font-size:11px;padding:3px 8px;border-radius:6px;z-index:9999;}
 
 /* Toast */
@@ -266,6 +280,28 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);over
     <div class="empty-state" id="asist-empty">Eleg&iacute; una fecha y un turno para tomar asistencia</div>
   </div>
 
+  <!-- Seccion historial -->
+  <div class="app-section" id="sec-historial">
+    <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:flex-end;">
+      <div style="flex:1;min-width:120px;">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;font-family:'Barlow Condensed',sans-serif;">Categor&iacute;a</div>
+        <select id="hist-cat" class="select-input" onchange="renderHistorial()"><option value="">Todas</option></select>
+      </div>
+      <div style="flex:1;min-width:110px;">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;font-family:'Barlow Condensed',sans-serif;">Desde</div>
+        <input type="date" id="hist-desde" class="date-input" onchange="renderHistorial()">
+      </div>
+      <div style="flex:1;min-width:110px;">
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px;font-family:'Barlow Condensed',sans-serif;">Hasta</div>
+        <input type="date" id="hist-hasta" class="date-input" onchange="renderHistorial()">
+      </div>
+    </div>
+    <div id="hist-tabla-wrap" style="overflow-x:auto;border-radius:12px;border:1px solid var(--border);display:none;">
+      <div id="hist-tabla"></div>
+    </div>
+    <div id="hist-empty" style="text-align:center;padding:40px;color:var(--muted);font-size:14px;">Sin datos de asistencia</div>
+  </div>
+
   <!-- Secci&oacute;n perfil -->
   <div class="app-section" id="sec-perfil">
     <div class="perfil-card">
@@ -318,7 +354,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);over
 </div>
 
 <div id="toast"></div>
-<div id="vbadge">v1.2</div>
+<div id="vbadge">v1.3</div>
 
 <script>
 // -- CONFIG --------------------------------------------------------
@@ -605,6 +641,7 @@ function irTab(tab){
   document.querySelectorAll('.app-section').forEach(function(s){ s.classList.remove('active'); });
   document.getElementById('tab-'+tab).classList.add('active');
   document.getElementById('sec-'+tab).classList.add('active');
+  if(tab==='historial') iniciarHistorial();
 }
 
 // -- ASISTENCIAS --------------------------------------------------
@@ -831,6 +868,99 @@ if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/excursio-prof/sw.js')
     .then(function(reg){ console.log('SW registrado'); })
     .catch(function(e){ console.log('SW error:', e); });
+}
+
+// -- HISTORIAL ---
+function iniciarHistorial() {
+  var sel = document.getElementById('hist-cat');
+  sel.innerHTML = '<option value="">Todas</option>';
+  var cats = [];
+  DB.horarios.forEach(function(h){ if(h.categoria && cats.indexOf(h.categoria)<0) cats.push(h.categoria); });
+  cats.forEach(function(c){ sel.innerHTML += '<option value="'+c+'">'+c+'</option>'; });
+  var hoy = new Date();
+  var desde = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  var dEl = document.getElementById('hist-desde');
+  var hEl = document.getElementById('hist-hasta');
+  if (!dEl.value) dEl.value = desde.toISOString().split('T')[0];
+  if (!hEl.value) hEl.value = hoy.toISOString().split('T')[0];
+  renderHistorial();
+}
+
+function renderHistorial() {
+  var catF  = document.getElementById('hist-cat').value;
+  var desde = document.getElementById('hist-desde').value;
+  var hasta = document.getElementById('hist-hasta').value;
+  var misCats = DB.horarios.map(function(h){ return h.categoria; }).filter(function(c,i,a){ return c&&a.indexOf(c)===i; });
+  var jug = DB.jugadores.slice(1).filter(function(f){
+    if (!f||!f.length) return false;
+    var activo = f[COL.ACTIVO];
+    if (!(activo===true||String(activo).toLowerCase()==='si')) return false;
+    var cat = f[COL.CATEGORIA_APP];
+    if (misCats.indexOf(cat) < 0) return false;
+    if (catF && cat !== catF) return false;
+    return true;
+  });
+  var turnosMap = {};
+  asistencias.forEach(function(r) {
+    var fecha = r[0]||'';
+    if (desde && fecha < desde) return;
+    if (hasta && fecha > hasta) return;
+    var tid = r[1]||'';
+    var partes = tid.split('_');
+    var cat = partes.length > 2 ? partes.slice(2).join('_') : '';
+    if (catF && cat !== catF) return;
+    if (misCats.length && misCats.indexOf(cat) < 0) return;
+    if (!turnosMap[tid]) turnosMap[tid] = {fecha:fecha, label:r[2]||'', cat:cat, turnoId:tid};
+  });
+  var turnos = Object.values(turnosMap).sort(function(a,b){ return a.fecha.localeCompare(b.fecha); });
+  var emptyEl = document.getElementById('hist-empty');
+  var wrapEl  = document.getElementById('hist-tabla-wrap');
+  if (!jug.length || !turnos.length) {
+    wrapEl.style.display='none'; emptyEl.style.display='block';
+    emptyEl.innerText = !jug.length ? 'Sin alumnos en esta categoria' : 'Sin registros en el periodo';
+    return;
+  }
+  wrapEl.style.display='block'; emptyEl.style.display='none';
+  var asistMap = {};
+  asistencias.forEach(function(r) {
+    var fecha=r[0]||'';
+    if (desde&&fecha<desde) return;
+    if (hasta&&fecha>hasta) return;
+    var dni=r[3]||'', tid=r[1]||'';
+    if (!asistMap[dni]) asistMap[dni]={};
+    asistMap[dni][tid] = (r[5]===true||String(r[5]).toLowerCase()==='si'||r[5]==='Si');
+  });
+  var html = '<table class="hist-table"><thead><tr><th>Alumno</th>';
+  turnos.forEach(function(t) {
+    var d = new Date(t.fecha+'T12:00:00');
+    var dia = d.toLocaleDateString('es-AR',{day:'numeric',month:'short'});
+    var lbl = t.label ? t.label.split(' - ')[0] : '';
+    html += '<th><div>'+dia+'</div><div style="font-size:10px;color:var(--verde);">'+lbl+'</div></th>';
+  });
+  html += '<th>%</th></tr></thead><tbody>';
+  jug.forEach(function(f) {
+    var dni=(f[COL.DNI]||'').toString();
+    var nombre=(f[COL.APELLIDO]||'')+', '+(f[COL.NOMBRE]||'');
+    var pres=0, tot=0;
+    html += '<tr><td title="DNI: '+dni+'">'+nombre+'</td>';
+    turnos.forEach(function(t) {
+      var jA=asistMap[dni]||{};
+      if (t.turnoId in jA) {
+        tot++;
+        if (jA[t.turnoId]) { pres++; html+='<td class="pres-cell">&#x2713;</td>'; }
+        else html+='<td class="ause-cell">&#x2717;</td>';
+      } else html+='<td class="no-cell">-</td>';
+    });
+    var pct=tot>0?Math.round(pres/tot*100):null;
+    var col=pct===null?'var(--muted)':pct>=75?'#6de097':pct>=50?'var(--dorado)':'var(--red)';
+    html+='<td style="font-weight:700;color:'+col+';">'+(pct!==null?pct+'%':'-')+'</td></tr>';
+  });
+  html += '</tbody></table>';
+  var totP=0,totR=0;
+  jug.forEach(function(f){var dni=(f[COL.DNI]||'').toString();var jA=asistMap[dni]||{};turnos.forEach(function(t){if(t.turnoId in jA){totR++;if(jA[t.turnoId])totP++;}});});
+  var pG=totR>0?Math.round(totP/totR*100):0;
+  html+='<div class="hist-resumen"><span>'+jug.length+' alumnos</span><span>&bull;</span><span>'+turnos.length+' clases</span><span>&bull;</span><span>Global: <b style="color:var(--dorado);">'+pG+'%</b></span></div>';
+  document.getElementById('hist-tabla').innerHTML = html;
 }
 
 window.onload = function(){
