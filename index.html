@@ -356,7 +356,7 @@ body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);over
 </div>
 
 <div id="toast"></div>
-<div id="vbadge">v1.3</div>
+<div id="vbadge">v1.4</div>
 
 <script>
 // -- CONFIG --------------------------------------------------------
@@ -734,7 +734,10 @@ function cargarLista(h){
   // Info del turno
   var ff = new Date(fecha+'T12:00:00').toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long'});
   var infoEl = document.getElementById('turno-info');
-  infoEl.innerHTML = '<b>'+fmtHora(h.hora)+'hs - '+h.categoria+'</b> &bull; '+ff+(h.sede?' &bull; '+h.sede:'');
+  var avisoPrevia = tieneRegistro
+    ? '<div style="margin-top:8px;padding:7px 10px;background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.4);border-radius:7px;font-size:12px;color:var(--dorado);">&#x26A0; Este turno ya tiene asistencia cargada. Podas modificarla y guardar de nuevo.</div>'
+    : '';
+  infoEl.innerHTML = '<b>'+fmtHora(h.hora)+'hs - '+h.categoria+'</b> &bull; '+ff+(h.sede?' &bull; '+h.sede:'') + avisoPrevia;
   infoEl.classList.add('visible');
 
   // Renderizar
